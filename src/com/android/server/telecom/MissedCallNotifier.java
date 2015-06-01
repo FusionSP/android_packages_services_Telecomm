@@ -193,6 +193,36 @@ class MissedCallNotifier extends CallsManagerListenerBase {
             builder.setStyle(style);
         }
 
+        // display the first line of the notification:
+        // 1 missed call: call name
+        // more than 1 missed call: <number of calls> + "missed calls" (+ list of calls)
+        if (mMissedCalls.size() == 1) {
+            builder.setContentTitle(mContext.getText(R.string.notification_missedCallTitle));
+            builder.setContentText(callName);
+        } else {
+            String message = mContext.getString(R.string.notification_missedCallsMsg,
+                    mMissedCalls.size());
+
+            builder.setContentTitle(mContext.getText(R.string.notification_missedCallsTitle));
+            builder.setContentText(message);
+
+            Notification.InboxStyle style = new Notification.InboxStyle(builder);
+            String number = call.getNumber();
+
+            for (MissedCallInfo info : mMissedCalls) {
+                style.addLine(formatSingleCallLine(info.name, info.date));
+
+                // only keep number if equal for all calls in order to hide actions
+                // if the calls came from different numbers
+                if (!TextUtils.equals(number, info.number)) {
+                    number = null;
+                }
+            }
+            style.setBigContentTitle(message);
+            style.setSummaryText(" ");
+            builder.setStyle(style);
+        }
+
         Uri handleUri = call.getHandle();
         String handle = handleUri == null ? null : handleUri.getSchemeSpecificPart();
 
